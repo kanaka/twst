@@ -36,13 +36,11 @@ function Twst(opts) {
         console.log(clientIdx + ': New client');
         ws.on('message', function(msg) {
             console.log(clientIdx + ': received: "%s"', msg);
-            if (self._onmessage) {
-                self._onmessage(clientIdx, msg);
-            }
+            if (self._onmessage) { self._onmessage(clientIdx, msg); }
         });
         ws.on('close', function() {
             console.log(clientIdx + ': closed client');
-            self._onclose(clientIdx);
+            if (self._onclose) { self._onclose(clientIdx); }
             delete clients[clientIdx];
         });
     });
