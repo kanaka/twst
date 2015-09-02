@@ -1,0 +1,28 @@
+{
+  "name": "twst",
+  "description": "WebSocket web application tester",
+  "version": "0.0.1",
+  "author": {
+    "name": "Joel Martin",
+    "email": "github@martintribe.org",
+    "url": "https://github.com/kanaka"
+  },
+  "license": "MPL-2.0",
+  "keywords": [
+    "websocket",
+    "websockets",
+    "test",
+    "testing",
+    "TDD",
+    "automation",
+    "eval"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/kanaka/twst"
+  },
+  "dependencies": {
+    "express": "4.13.3",
+    "express-ws": "1.0.0-rc.1"
+  }
+}
