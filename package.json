@@ -17,6 +17,8 @@
     "automation",
     "eval"
   ],
+  "main": "twst.js",
+  "files": ["twst_client.js"],
   "repository": {
     "type": "git",
     "url": "git://github.com/kanaka/twst"

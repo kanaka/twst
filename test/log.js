@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-var Twst = require('./twst').Twst,
+var Twst = require('../twst').Twst,
     twst = new Twst();
 
 twst.on('return', function(clientIdx, msg) {
