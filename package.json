@@ -1,6 +1,6 @@
 {
   "name": "twst",
-  "description": "WebSocket web application tester",
+  "description": "Distributed web application testing using WebSockets",
   "version": "0.0.1",
   "author": {
     "name": "Joel Martin",

@@ -6,6 +6,16 @@ twst.on('return', function(clientIdx, msg) {
     console.log(clientIdx + ': RETURN:', msg);
 });
 
+twst.on('console.log', function(clientIdx, msg) {
+    console.log.apply(console, [clientIdx + ': CONSOLE.LOG:'].concat(msg.data));
+});
+twst.on('console.warn', function(clientIdx, msg) {
+    console.log.apply(console, [clientIdx + ': CONSOLE.WARN:'].concat(msg));
+});
+twst.on('console.error', function(clientIdx, msg) {
+    console.log.apply(console, [clientIdx + ': CONSOLE.ERROR:'].concat(msg));
+});
+
 function test_func() {
     console.log('output from test_func');
     setTimeout(function() {
@@ -17,7 +27,3 @@ function test_func() {
 setInterval(function() {
     twst.broadcast('3+3');
 }, 5000);
-
-setInterval(function() {
-    twst.broadcast(test_func);
-}, 6000);

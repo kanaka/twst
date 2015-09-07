@@ -29,8 +29,12 @@ function Twst(opts) {
     this._nextClientIdx = 0;
     this._broadcastIdx = 0;
     this._collectCtx = {};
-    this._onmessage = null;
-    this._onclose = null;
+    this._events = {'return': null,
+                    'callback': null,
+                    'console.log': null,
+                    'console.warn': null,
+                    'console.error': null,
+                    'close': null};
 
     // TODO: Make this non-default option --web or something
     // TODO: maybe inject twst_client.js script into index.html
@@ -43,9 +47,12 @@ function Twst(opts) {
         console.log(clientIdx + ': New client');
 
         ws.on('message', function(raw) {
-            console.log(clientIdx + ': received: \'%s\'', raw);
+            //console.log(clientIdx + ': received: \'%s\'', raw);
             var msg = JSON.parse(raw);
-            if (self._onmessage) { self._onmessage(clientIdx, msg); }
+
+            if (self._events[msg.type]) {
+                self._events[msg.type](clientIdx, msg);
+            }
 
             // Handle collect
             var id = msg.id;
@@ -73,6 +80,14 @@ function Twst(opts) {
 
     this.app.listen(opts.port);
     console.log('Server listening on :' + opts.port);
+}
+
+Twst.prototype.on = function(type, callback) {
+    if (type in this._events) {
+        this._events[type] = callback;
+    } else {
+        console.error('unknown event type ' + type);
+    }
 }
 
 // broadcast: send a message to every client
@@ -125,19 +140,6 @@ Twst.prototype.collect = function(source, opts, callback) {
         }, opts.timeout);
     }
     this.broadcast(source, opts);
-}
-
-Twst.prototype.on = function(type, callback) {
-    switch (type) {
-    case 'message':
-        this._onmessage = callback;
-        break;
-    case 'close':
-        this._onclose = callback;
-        break;
-    default:
-        console.error('unknown event type ' + type);
-    }
 }
 
 exports.Twst = Twst;
