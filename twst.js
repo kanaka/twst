@@ -98,7 +98,7 @@ Twst.prototype.broadcast = function(source, opts) {
     if (!opts.type) { opts.type = "eval"; }
     // Send function source over and run them
     if (typeof source === 'function') {
-        source = source.toString() + ";" + source.name + "();"
+        source = '(' + source.toString() + ')();'
     }
     var idxes = Object.keys(this.clients),
         msg = {id:    this._broadcastIdx++,

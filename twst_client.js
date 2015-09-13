@@ -11,8 +11,6 @@
         });
     }
 
-    var twst_param = document.location.href.match(/twst_address=([A-Za-z0-9:\._\-\/]*)/);
-    //console.log("twst_param:", twst_param);
     if ('twst_address' in location.queryParams) {
         var twst_address = 'ws://' + location.queryParams.twst_address;
     } else {
@@ -59,7 +57,6 @@
             };
         switch (msg.type) {
         case 'eval':
-            console.log('twst eval msg:', msg);
             var ret = eval(msg.data),
                 resp_msg = null;
 
@@ -69,7 +66,7 @@
             twst_ws.send(JSON.stringify(resp_msg));
             break;
         default:
-            console.error('twst unrecognized msg:', msg);
+            console.error('twst unrecognized msg:', event.data);
         }
     }
 
