@@ -44,7 +44,7 @@ function Twst(opts) {
     this.app.ws('/', function(ws, req) {
         var clientIdx = self._nextClientIdx++;
         self.clients[clientIdx] = ws;
-        console.log(clientIdx + ': New client');
+        console.log(clientIdx + ': new twst client');
 
         ws.on('message', function(raw) {
             //console.log(clientIdx + ': received: \'%s\'', raw);
@@ -72,14 +72,14 @@ function Twst(opts) {
         });
 
         ws.on('close', function() {
-            console.log(clientIdx + ': closed client');
+            console.log(clientIdx + ': closed twst client');
             if (self._onclose) { self._onclose(clientIdx); }
             delete self.clients[clientIdx];
         });
     });
 
     this.app.listen(opts.port);
-    console.log('Server listening on :' + opts.port);
+    console.log('Twst server listening on :' + opts.port);
 }
 
 Twst.prototype.on = function(type, callback) {
