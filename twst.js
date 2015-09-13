@@ -10,7 +10,8 @@
 //    type: 'return|callback',
 //    data: 'value'}
 
-var express = require('express'),
+var os = require('os'),
+    express = require('express'),
     express_ws = require('express-ws');
 
 function keysEqual(obj1, obj2) {
@@ -78,8 +79,25 @@ function Twst(opts) {
         });
     });
 
-    this.app.listen(opts.port);
+    this.server = this.app.listen(opts.port);
     console.log('Twst server listening on :' + opts.port);
+}
+
+Twst.prototype.getAddress = function(family) {
+    var intfs = os.networkInterfaces();
+    var addresses = [];
+    for (var intf in intfs) {
+        for (var i in intfs[intf]) {
+            var addr = intfs[intf][i];
+            if (addr.internal) {
+                continue;
+            }
+            if (family && family !== addr.famly) {
+                continue;
+            }
+            return addr.address + ':' + this.server.address().port;
+        }
+    }
 }
 
 Twst.prototype.on = function(type, callback) {
