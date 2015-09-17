@@ -22,6 +22,10 @@
     twst_ws.onopen = function() {
         console.log('twst connection established to: ' + twst_address);
 
+        // Catch and send errors
+        window.onerror = function(msg) {
+            twst_ws.send(JSON.stringify({type: 'error', data: msg}));
+        }
         // Duplicate console messages to the server
         var log = console.log;
         var warn = console.warn;

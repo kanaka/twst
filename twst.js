@@ -32,6 +32,7 @@ function Twst(opts) {
     this._collectCtx = {};
     this._events = {'return': null,
                     'callback': null,
+                    'error': null,
                     'console.log': null,
                     'console.warn': null,
                     'console.error': null,
@@ -83,6 +84,11 @@ function Twst(opts) {
     console.log('Twst server listening on :' + opts.port);
 }
 
+Twst.prototype.remove = function(cid) {
+    this.send('window.callPhantom("QUIT")', {id: cid});
+    delete this.clients[cid]; // NOTE: mutates array in place
+}
+
 Twst.prototype.getAddress = function(family) {
     var intfs = os.networkInterfaces();
     var addresses = [];
@@ -108,24 +114,36 @@ Twst.prototype.on = function(type, callback) {
     }
 }
 
-// broadcast: send a message to every client
+// send: send a message to a client
+//     opts.id:   id of client (null for broadcast)
 //     opts.type: type of message to send
-Twst.prototype.broadcast = function(source, opts) {
+Twst.prototype.send = function(source, opts) {
     // Defaults
-    if (!opts)      { opts = {}; }
-    if (!opts.type) { opts.type = "eval"; }
+    if (!opts)           { opts = {}; }
+    if (!opts.type)      { opts.type = "eval"; }
+    if (!('id' in opts)) { opts.id = null; }
     // Send function source over and run them
     if (typeof source === 'function') {
         source = '(' + source.toString() + ')();'
     }
-    var idxes = Object.keys(this.clients),
+    var cids = Object.keys(this.clients),
         msg = {id:    this._broadcastIdx++,
                type:  opts.type,
                data:  source},
         json = JSON.stringify(msg);
-    for(var i=0; i<idxes.length; i++) {
-        this.clients[idxes[i]].send(json);
+    if (opts.id === null) {
+        for(var i=0; i<cids.length; i++) {
+            this.clients[cids[i]].send(json);
+        }
+    } else {
+        this.clients[opts.id].send(json);
     }
+}
+
+// broadcast: send a message to every client
+//     opts.type: type of message to send
+Twst.prototype.broadcast = function(source, opts) {
+    this.send(source, opts, -1);
 }
 
 // collect: call broadcast, then call callback when all clients return
