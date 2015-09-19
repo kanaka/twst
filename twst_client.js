@@ -61,12 +61,19 @@
             };
         switch (msg.type) {
         case 'eval':
-            var ret = eval(msg.data),
+            var data = null,
+                type = 'return',
                 resp_msg = null;
 
+            try {
+                data = eval(msg.data);
+            } catch (exc) {
+                type = 'error';
+                data = exc.message;
+            }
             resp_msg = {id: msg.id,
-                        type: 'return',
-                        data: ret};
+                        type: type,
+                        data: data};
             twst_ws.send(JSON.stringify(resp_msg));
             break;
         default:

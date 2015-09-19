@@ -84,6 +84,14 @@ function Twst(opts) {
     console.log('Twst server listening on :' + opts.port);
 }
 
+Twst.prototype.on = function(type, callback) {
+    if (type in this._events) {
+        this._events[type] = callback;
+    } else {
+        console.error('unknown event type ' + type);
+    }
+}
+
 Twst.prototype.remove = function(cid) {
     this.send('window.callPhantom("QUIT")', {id: cid});
     delete this.clients[cid]; // NOTE: mutates array in place
@@ -103,14 +111,6 @@ Twst.prototype.getAddress = function(family) {
             }
             return addr.address + ':' + this.server.address().port;
         }
-    }
-}
-
-Twst.prototype.on = function(type, callback) {
-    if (type in this._events) {
-        this._events[type] = callback;
-    } else {
-        console.error('unknown event type ' + type);
     }
 }
 

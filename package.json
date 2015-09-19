@@ -1,7 +1,7 @@
 {
   "name": "twst",
   "description": "Distributed web application testing using WebSockets",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "author": {
     "name": "Joel Martin",
     "email": "github@martintribe.org",
