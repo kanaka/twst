@@ -17,38 +17,15 @@
         var twst_address = 'ws://' + location.host;
     }
 
+    console.log('opening twst connection to: ' + twst_address);
     twst_ws = new WebSocket(twst_address);
 
     twst_ws.onopen = function() {
         console.log('twst connection established to: ' + twst_address);
-
-        // Catch and send errors
-        window.onerror = function(msg) {
-            twst_ws.send(JSON.stringify({type: 'error', data: msg}));
-        }
-        // Duplicate console messages to the server
-        var log = console.log;
-        var warn = console.warn;
-        var error = console.error;
-        console.log = function () {
-            var args = Array.prototype.slice.call(arguments);
-            log.apply(this, args);
-            twst_ws.send(JSON.stringify({type: 'console.log', data: args}));
-        };
-        console.warn = function () {
-            var args = Array.prototype.slice.call(arguments);
-            warn.apply(this, args);
-            twst_ws.send(JSON.stringify({type: 'console.warn', data: args}));
-        };
-        console.error = function () {
-            var args = Array.prototype.slice.call(arguments);
-            error.apply(this, args);
-            twst_ws.send(JSON.stringify({type: 'console.error', data: args}));
-        };
     }
 
     twst_ws.onclose = function() {
-        console.log('twst connection closed');
+        console.log('twst connection closed to: ' + twst_address);
     }
 
     twst_ws.onmessage = function(event) {
@@ -80,6 +57,51 @@
             console.error('twst unrecognized msg:', event.data);
         }
     }
+
+    ///////////////////////////////////////////////////
+    // Send errors and console messages to the server
+    var clog   = console.log,
+        cwarn  = console.warn,
+        cerror = console.error,
+        pending = {'error':  [],
+                   'clog':   [],
+                   'cwarn':  [],
+                   'cerror': []};
+
+    setInterval(function() {
+        if (twst_ws.readyState !== twst_ws.OPEN) { return; }
+
+        // Catch and send errors
+        pending.error.forEach(function(msg) {
+            twst_ws.send(JSON.stringify({type: 'error', data: msg}));
+        });
+        pending.clog.forEach(function(args) {
+            twst_ws.send(JSON.stringify({type: 'console.log', data: args}));
+        });
+        pending.cwarn.forEach(function(args) {
+            twst_ws.send(JSON.stringify({type: 'console.warn', data: args}));
+        });
+        pending.cerror.forEach(function(args) {
+            twst_ws.send(JSON.stringify({type: 'console.error', data: args}));
+        });
+        pending = {'error': [], 'clog': [], 'cwarn': [], 'cerror': []};
+    }, 17);
+
+    console.log = function () {
+        var args = Array.prototype.slice.call(arguments);
+        clog.apply(this, args);
+        pending.clog.push(args);
+    };
+    console.warn = function () {
+        var args = Array.prototype.slice.call(arguments);
+        cwarn.apply(this, args);
+        pending.cwarn.push(args);
+    };
+    console.error = function () {
+        var args = Array.prototype.slice.call(arguments);
+        cerror.apply(this, args);
+        pending.cerror.push(args);
+    };
 
     return twst_ws;
 })();
