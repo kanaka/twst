@@ -11,8 +11,7 @@
 //    data: 'value'}
 
 var os = require('os'),
-    express = require('express'),
-    express_ws = require('express-ws');
+    WebSocketServer = require('ws').Server;
 
 function keysEqual(obj1, obj2) {
     var ks1 = JSON.stringify(Object.keys(obj1).sort()),
@@ -20,12 +19,32 @@ function keysEqual(obj1, obj2) {
     return ks1 === ks2;
 }
 
+exports.getIP = function getIP(family) {
+    var intfs = os.networkInterfaces();
+    var addresses = [];
+    for (var intf in intfs) {
+        for (var i in intfs[intf]) {
+            var addr = intfs[intf][i];
+            if (addr.internal) {
+                continue;
+            }
+            if (family && family !== addr.famly) {
+                continue;
+            }
+            //return addr.address + ':' + this.server.address().port;
+            //return addr.address + ':' + this.opts.port;
+            return addr.address;
+        }
+    }
+}
+
 function Twst(opts) {
     if (!opts) { opts = {} }
     if (!opts.port) { opts.port = 9000 }
+    opts.port = parseInt(opts.port, 10);
+    if (!opts.callback) { opts.callback = function() {} }
 
-    this.app = express();
-    this.expressWs = express_ws(this.app);
+    this.opts = opts;
     this.clients = {};
     this._nextClientIdx = 0;
     this._broadcastIdx = 0;
@@ -38,12 +57,10 @@ function Twst(opts) {
                     'console.error': null,
                     'close': null};
 
-    // TODO: Make this non-default option --web or something
-    // TODO: maybe inject twst_client.js script into index.html
-    this.app.use(express.static('./'));
+    this.wss = new WebSocketServer({port: opts.port}, opts.callback);
 
     var self = this;
-    this.app.ws('/', function(ws, req) {
+    this.wss.on('connection', function connection(ws) {
         var clientIdx = self._nextClientIdx++;
         self.clients[clientIdx] = ws;
         console.log(clientIdx + ': new twst client');
@@ -73,14 +90,13 @@ function Twst(opts) {
             }
         });
 
-        ws.on('close', function() {
-            console.log(clientIdx + ': closed twst client');
-            if (self._onclose) { self._onclose(clientIdx); }
+        ws.on('close', function(code, reason) {
+            console.log(clientIdx + ': closed twst client (' +
+                        code + ': ' + reason + ')');
             delete self.clients[clientIdx];
         });
     });
 
-    this.server = this.app.listen(opts.port);
     console.log('Twst server listening on :' + opts.port);
 }
 
@@ -95,23 +111,6 @@ Twst.prototype.on = function(type, callback) {
 Twst.prototype.remove = function(cid) {
     this.send('window.callPhantom("QUIT")', {id: cid});
     delete this.clients[cid]; // NOTE: mutates array in place
-}
-
-Twst.prototype.getAddress = function(family) {
-    var intfs = os.networkInterfaces();
-    var addresses = [];
-    for (var intf in intfs) {
-        for (var i in intfs[intf]) {
-            var addr = intfs[intf][i];
-            if (addr.internal) {
-                continue;
-            }
-            if (family && family !== addr.famly) {
-                continue;
-            }
-            return addr.address + ':' + this.server.address().port;
-        }
-    }
 }
 
 // send: send a message to a client
@@ -143,7 +142,7 @@ Twst.prototype.send = function(source, opts) {
 // broadcast: send a message to every client
 //     opts.type: type of message to send
 Twst.prototype.broadcast = function(source, opts) {
-    this.send(source, opts, -1);
+    this.send(source, opts);
 }
 
 // collect: call broadcast, then call callback when all clients return

@@ -1,7 +1,7 @@
 {
   "name": "twst",
   "description": "Distributed web application testing using WebSockets",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "author": {
     "name": "Joel Martin",
     "email": "github@martintribe.org",
@@ -24,7 +24,6 @@
     "url": "git://github.com/kanaka/twst"
   },
   "dependencies": {
-    "express": "4.13.3",
-    "express-ws": "1.0.0-rc.1"
+    "ws": "0.8.0"
   }
 }
